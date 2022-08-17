@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response,NextFunction } from 'express';
 import { FeedItem } from '../models/FeedItem';
 import { requireAuth } from '../../users/routes/auth.router';
 import * as AWS from '../../../../aws';
@@ -16,15 +16,34 @@ router.get('/', async (req: Request, res: Response) => {
     res.send(items);
 });
 
-//@TODO
+//@TODO - DONE
 //Add an endpoint to GET a specific resource by Primary Key
+router.get('/:id',async(req:Request, res:Response, next:NextFunction)=>{
+    const {id} = req.params
+    if(!id){
+        res.status(400).send('The id is required!')
+    }
+    const result = await FeedItem.findByPk(id)
+    if(!result){
+        res.status(404).send('resource not found')
+    }
+    return res.status(200).send(result)
+})
 
 // update a specific resource
 router.patch('/:id', 
     requireAuth, 
     async (req: Request, res: Response) => {
         //@TODO try it yourself
-        res.status(500).send("not implemented")
+        const {id} = req.params
+        if(!id){
+            res.status(400).send('The id is required!')
+        }
+        const result = await FeedItem.update(
+            req.body,
+            { where: { id: id } }
+        )
+        res.status(204).send()
 });
 
 
