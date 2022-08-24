@@ -35,4 +35,4 @@ To run the server locally in developer mode, open terminal and run:
 npm run dev
 ```
 
-Developer mode runs off the TypeScript source. Any saves will reset the server and run the latest version of the codebase. 
+Developer mode runs off the TypeScript source. Any saves will reset the server and run the latest version of the codebase.
