@@ -89,7 +89,7 @@ router.post('/',
 
     res.status(201).send(saved_item);
     // File upload was successful here since before this is run, the image has already been uploaded
-    // Emit finish
+    // Emit on finish
     res.on('finish', ()=>{
         broker.emit('image_upload', saved_item.url)
     })
