@@ -1,7 +1,10 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response,NextFunction } from 'express';
 import { FeedItem } from '../models/FeedItem';
 import { requireAuth } from '../../users/routes/auth.router';
 import * as AWS from '../../../../aws';
+import broker from '../../broker';
+
+
 
 const router: Router = Router();
 
@@ -16,15 +19,34 @@ router.get('/', async (req: Request, res: Response) => {
     res.send(items);
 });
 
-//@TODO
+//@TODO - DONE
 //Add an endpoint to GET a specific resource by Primary Key
+router.get('/:id',async(req:Request, res:Response, next:NextFunction)=>{
+    const {id} = req.params
+    if(!id){
+        res.status(400).send('The id is required!')
+    }
+    const result = await FeedItem.findByPk(id)
+    if(!result){
+        res.status(404).send('resource not found')
+    }
+    return res.status(200).send(result)
+})
 
 // update a specific resource
 router.patch('/:id', 
     requireAuth, 
     async (req: Request, res: Response) => {
         //@TODO try it yourself
-        res.status(500).send("not implemented")
+        const {id} = req.params
+        if(!id){
+            res.status(400).send('The id is required!')
+        }
+        const result = await FeedItem.update(
+            req.body,
+            { where: { id: id } }
+        )
+        res.status(204).send()
 });
 
 
@@ -64,7 +86,13 @@ router.post('/',
     const saved_item = await item.save();
 
     saved_item.url = AWS.getGetSignedUrl(saved_item.url);
+
     res.status(201).send(saved_item);
+    // File upload was successful here since before this is run, the image has already been uploaded
+    // Emit finish
+    res.on('finish', ()=>{
+        broker.emit('image_upload', saved_item.url)
+    })
 });
 
 export const FeedRouter: Router = router;
