@@ -2,6 +2,9 @@ import { Router, Request, Response,NextFunction } from 'express';
 import { FeedItem } from '../models/FeedItem';
 import { requireAuth } from '../../users/routes/auth.router';
 import * as AWS from '../../../../aws';
+import broker from '../../broker';
+
+
 
 const router: Router = Router();
 
@@ -83,7 +86,13 @@ router.post('/',
     const saved_item = await item.save();
 
     saved_item.url = AWS.getGetSignedUrl(saved_item.url);
+
     res.status(201).send(saved_item);
+    // File upload was successful here since before this is run, the image has already been uploaded
+    // Emit finish
+    res.on('finish', ()=>{
+        broker.emit('image_upload', saved_item.url)
+    })
 });
 
 export const FeedRouter: Router = router;
